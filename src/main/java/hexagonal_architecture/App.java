@@ -25,10 +25,11 @@ public class App {
     private final GameRegistry gameRegistry = new GameRegistryImpl();
     private final GameService gameService = new GameServiceImpl(this.gameRegistry, this.userRegistry);
     private final HttpCommunication server;
-    private final VertxEventPublisher publisher = new VertxEventPublisher(Vertx.vertx().eventBus());
+    private final VertxEventPublisher publisher;
 
     public App(final Vertx vertx) {
         this.server = new HttpCommunication(PORT, this.createRouter(vertx), vertx);
+        this.publisher = new VertxEventPublisher(vertx, this.server.getHttpServer(), this.gameRegistry);
     }
 
     public static Logger getLogger() {
@@ -80,38 +81,40 @@ public class App {
     }
 
     private void makeAMove(RoutingContext context) {
-        final JsonObject body = context.body().asJsonObject();
-        final User user = this.userRegistry.findUserById(body.getString("userId")).orElseThrow();
-        final Game game = this.gameRegistry.findGameById(body.getString("gameId")).orElseThrow();
-        final String symbol = body.getString("symbol");
-        final int x = Integer.parseInt(body.getString("x"));
-        final int y = Integer.parseInt(body.getString("y"));
-        final JsonObject reply = new JsonObject();
-        try {
-            this.gameService.makeAMove(user.id(), game.getId(), symbol, x, y);
-            reply.put("result", "accepted");
+        context.request().handler(buffer -> {
+            final JsonObject reply = new JsonObject();
+            try {
+                final JsonObject moveInfo = buffer.toJsonObject();
+                final User user = this.userRegistry.findUserById(moveInfo.getString("userId")).orElseThrow();
+                final Game game = this.gameRegistry.findGameById(moveInfo.getString("gameId")).orElseThrow();
+                final String symbol = moveInfo.getString("symbol");
+                final int x = Integer.parseInt(moveInfo.getString("x"));
+                final int y = Integer.parseInt(moveInfo.getString("y"));
+                this.gameService.makeAMove(user.id(), game.getId(), symbol, x, y);
+                reply.put("result", "accepted");
 
-            final JsonObject event = new JsonObject()
-                    .put("event", "new-move")
-                    .put("x", x)
-                    .put("y", y)
-                    .put("symbol", symbol);
-            this.publisher.publish(game.getId(), event);
+                final JsonObject event = new JsonObject()
+                        .put("event", "new-move")
+                        .put("x", x)
+                        .put("y", y)
+                        .put("symbol", symbol);
+                this.publisher.publish(game.getId(), event);
 
-            if (game.isGameEnd()) {
-                final JsonObject eventEnd = new JsonObject();
-                eventEnd.put("event", "game-ended");
-                if (game.isTie()) {
-                    eventEnd.put("result", "tie");
-                } else {
-                    eventEnd.put("winner", game.getWinner().get());
+                if (game.isGameEnd()) {
+                    final JsonObject eventEnd = new JsonObject();
+                    eventEnd.put("event", "game-ended");
+                    if (game.isTie()) {
+                        eventEnd.put("result", "tie");
+                    } else {
+                        eventEnd.put("winner", game.getWinner().get());
 
+                    }
+                    this.publisher.publish(game.getId(), eventEnd);
                 }
-                this.publisher.publish(game.getId(), eventEnd);
+            } catch (Exception ex) {
+                reply.put("result", "invalid-move");
             }
-        } catch (Exception ex) {
-            reply.put("result", "invalid-move");
-        }
+        });
     }
 
     public static void main(String[] args) {
