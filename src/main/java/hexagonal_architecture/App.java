@@ -106,7 +106,7 @@ public class App {
                     if (game.isTie()) {
                         eventEnd.put("result", "tie");
                     } else {
-                        eventEnd.put("winner", game.getWinner().get());
+                        eventEnd.put("winner", game.getWinner().get().toString().toLowerCase());
 
                     }
                     this.publisher.publish(game.getId(), eventEnd);
@@ -114,6 +114,7 @@ public class App {
             } catch (Exception ex) {
                 reply.put("result", "invalid-move");
             }
+            context.json(reply);
         });
     }
 
