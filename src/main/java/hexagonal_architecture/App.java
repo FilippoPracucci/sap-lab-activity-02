@@ -2,6 +2,7 @@ package hexagonal_architecture;
 
 import hexagonal_architecture.infrastructure.*;
 import hexagonal_architecture.domain.GameLogger;
+import hexagonal_architecture.domain.Game;
 import hexagonal_architecture.domain.User;
 import hexagonal_architecture.application.*;
 import io.vertx.core.Vertx;
@@ -9,7 +10,6 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.RoutingContext;
-import hexagonal_architecture.domain.Game;
 import io.vertx.ext.web.handler.StaticHandler;
 
 import java.util.logging.Level;

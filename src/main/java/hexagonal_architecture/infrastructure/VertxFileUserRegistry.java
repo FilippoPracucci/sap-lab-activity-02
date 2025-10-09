@@ -42,8 +42,7 @@ public class VertxFileUserRegistry implements UserRegistry {
         return this.users.values();
     }
 
-    @Override
-    public void initUsers() {
+    private void initUsers() {
         try {
             final BufferedReader usersDB = new BufferedReader(new FileReader(this.userRegistryFile));
             final StringBuilder stringBuilder = new StringBuilder();

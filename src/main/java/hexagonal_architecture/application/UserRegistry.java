@@ -8,5 +8,4 @@ public interface UserRegistry {
     void saveUser(User user);
     Optional<User> findUserById(String userId);
     Iterable<User> findAllUsers();
-    void initUsers();
 }
