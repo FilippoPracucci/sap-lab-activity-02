@@ -30,7 +30,7 @@ public class App {
         vertx.deployVerticle(server);
     }
 
-    public Router createRouter(final Vertx vertx) {
+    private Router createRouter(final Vertx vertx) {
         final Router router = Router.router(vertx);
         router.route(HttpMethod.POST, "/api/registerUser").handler(this::registerUser);
         router.route(HttpMethod.POST, "/api/createGame").handler(this::createNewGame);
