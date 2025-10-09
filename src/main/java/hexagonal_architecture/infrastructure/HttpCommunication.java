@@ -1,6 +1,6 @@
-package hexagonal_architecture.application;
+package hexagonal_architecture.infrastructure;
 
-import hexagonal_architecture.App;
+import hexagonal_architecture.domain.GameLogger;
 import io.vertx.core.Future;
 import io.vertx.core.VerticleBase;
 import io.vertx.core.Vertx;
@@ -25,7 +25,7 @@ public class HttpCommunication extends VerticleBase {
     public Future<?> start() {
         final Future<HttpServer> future = this.server.requestHandler(this.router).listen(this.port);
         future.onSuccess(res -> {
-            App.getLogger().log(Level.INFO, "TTT Game Server ready - port: " + this.port);
+            GameLogger.getLogger().log(Level.INFO, "TTT Game Server ready - port: " + this.port);
         });
         return future;
     }

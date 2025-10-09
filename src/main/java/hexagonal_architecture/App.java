@@ -1,8 +1,9 @@
 package hexagonal_architecture;
 
-import hexagonal_architecture.application.*;
-import hexagonal_architecture.domain.User;
 import hexagonal_architecture.infrastructure.*;
+import hexagonal_architecture.domain.GameLogger;
+import hexagonal_architecture.domain.User;
+import hexagonal_architecture.application.*;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
@@ -12,11 +13,9 @@ import hexagonal_architecture.domain.Game;
 import io.vertx.ext.web.handler.StaticHandler;
 
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class App {
 
-    private static final Logger logger = Logger.getLogger("[TicTacToe]");
     private static final int PORT = 8080;
     private static final String DB_USERS = "users.json";
 
@@ -30,10 +29,6 @@ public class App {
     public App(final Vertx vertx) {
         this.server = new HttpCommunication(PORT, this.createRouter(vertx), vertx);
         this.publisher = new VertxEventPublisher(vertx, this.server.getHttpServer(), this.gameRegistry);
-    }
-
-    public static Logger getLogger() {
-        return logger;
     }
 
     public Router createRouter(final Vertx vertx) {
@@ -65,7 +60,7 @@ public class App {
     private void joinGame(RoutingContext context) {
         context.request().handler(buffer -> {
             final JsonObject joinInfo = buffer.toJsonObject();
-            logger.log(Level.INFO, joinInfo.toString());
+            GameLogger.getLogger().log(Level.INFO, joinInfo.toString());
             final User user = this.userRegistry.findUserById(joinInfo.getString("userId")).orElseThrow();
             final Game game = this.gameRegistry.findGameById(joinInfo.getString("gameId")).orElseThrow();
             final String symbol = joinInfo.getString("symbol");

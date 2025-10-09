@@ -1,9 +1,9 @@
-package hexagonal_architecture.application;
+package hexagonal_architecture.infrastructure;
 
-import hexagonal_architecture.App;
 import hexagonal_architecture.domain.Game;
-import hexagonal_architecture.infrastructure.EventPublisher;
-import hexagonal_architecture.infrastructure.GameRegistry;
+import hexagonal_architecture.domain.GameLogger;
+import hexagonal_architecture.application.EventPublisher;
+import hexagonal_architecture.application.GameRegistry;
 import io.vertx.core.Vertx;
 import io.vertx.core.eventbus.EventBus;
 import io.vertx.core.http.HttpServer;
@@ -19,7 +19,7 @@ public class VertxEventPublisher implements EventPublisher {
     public VertxEventPublisher(final Vertx vertx, final HttpServer server, final GameRegistry gameRegistry) {
         this.eventBus = vertx.eventBus();
         server.webSocketHandler(webSocket -> {
-            App.getLogger().log(Level.INFO, "New TTT subscription accepted.");
+            GameLogger.getLogger().log(Level.INFO, "New TTT subscription accepted.");
 
             /*
              *
@@ -28,7 +28,7 @@ public class VertxEventPublisher implements EventPublisher {
              *
              */
             webSocket.textMessageHandler(openMsg -> {
-                App.getLogger().log(Level.INFO, "For game: " + openMsg);
+                GameLogger.getLogger().log(Level.INFO, "For game: " + openMsg);
                 final JsonObject obj = new JsonObject(openMsg);
                 final String gameId = obj.getString("gameId");
 
@@ -61,7 +61,7 @@ public class VertxEventPublisher implements EventPublisher {
     private void consume(final String gameId, final WebSocket webSocket) {
         this.eventBus.consumer(this.gameAddress(gameId), msg -> {
             final JsonObject event = (JsonObject) msg.body();
-            App.getLogger().log(Level.INFO, "Notifying event to the frontend: " + event.encodePrettily());
+            GameLogger.getLogger().log(Level.INFO, "Notifying event to the frontend: " + event.encodePrettily());
             webSocket.writeTextMessage(event.encodePrettily());
         });
     }
@@ -78,7 +78,7 @@ public class VertxEventPublisher implements EventPublisher {
                         .put("event", "game-started");
                 this.publish(game.getId(), eventGameStarted);
             } catch (Exception ex) {
-                App.getLogger().log(Level.INFO, "Unable to start the game");
+                GameLogger.getLogger().log(Level.INFO, "Unable to start the game");
             }
         }
 

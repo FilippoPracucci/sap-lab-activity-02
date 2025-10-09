@@ -1,8 +1,7 @@
-package hexagonal_architecture.application;
+package hexagonal_architecture.infrastructure;
 
-import hexagonal_architecture.App;
 import hexagonal_architecture.domain.Game;
-import hexagonal_architecture.infrastructure.GameRegistry;
+import hexagonal_architecture.application.GameRegistry;
 
 import java.util.HashMap;
 import java.util.Map;

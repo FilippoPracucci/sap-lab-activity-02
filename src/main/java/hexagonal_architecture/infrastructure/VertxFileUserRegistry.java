@@ -1,8 +1,8 @@
-package hexagonal_architecture.application;
+package hexagonal_architecture.infrastructure;
 
-import hexagonal_architecture.App;
+import hexagonal_architecture.domain.GameLogger;
 import hexagonal_architecture.domain.User;
-import hexagonal_architecture.infrastructure.UserRegistry;
+import hexagonal_architecture.application.UserRegistry;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 
@@ -59,7 +59,7 @@ public class VertxFileUserRegistry implements UserRegistry {
             }
 
         } catch (Exception ex) {
-            App.getLogger().info("No dbase, creating a new one");
+            GameLogger.getLogger().info("No dbase, creating a new one");
             this.saveOnDB();
         }
     }
@@ -78,7 +78,7 @@ public class VertxFileUserRegistry implements UserRegistry {
             usersDB.flush();
             usersDB.close();
         } catch (Exception ex) {
-            App.getLogger().log(Level.INFO, "Error saving on the Database");
+            GameLogger.getLogger().log(Level.INFO, "Error saving on the Database");
         }
     }
 }

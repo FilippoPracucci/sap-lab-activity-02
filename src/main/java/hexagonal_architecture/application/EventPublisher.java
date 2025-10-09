@@ -1,4 +1,4 @@
-package hexagonal_architecture.infrastructure;
+package hexagonal_architecture.application;
 
 public interface EventPublisher {
     void publish(String gameId, Object event);
