@@ -1,6 +1,5 @@
-package hexagonal_architecture;
+package hexagonal_architecture.infrastructure;
 
-import hexagonal_architecture.infrastructure.*;
 import hexagonal_architecture.domain.GameLogger;
 import hexagonal_architecture.domain.Game;
 import hexagonal_architecture.domain.User;
@@ -23,12 +22,12 @@ public class App {
     private final UserRegistry userRegistry = new VertxFileUserRegistry(DB_USERS);
     private final GameRegistry gameRegistry = new GameRegistryImpl();
     private final GameService gameService = new GameServiceImpl(this.gameRegistry, this.userRegistry);
-    private final HttpCommunication server;
     private final VertxEventPublisher publisher;
 
     public App(final Vertx vertx) {
-        this.server = new HttpCommunication(PORT, this.createRouter(vertx), vertx);
-        this.publisher = new VertxEventPublisher(vertx, this.server.getHttpServer(), this.gameRegistry);
+        final HttpCommunication server = new HttpCommunication(PORT, this.createRouter(vertx), vertx);
+        this.publisher = new VertxEventPublisher(vertx, server.getHttpServer(), this.gameRegistry);
+        vertx.deployVerticle(server);
     }
 
     public Router createRouter(final Vertx vertx) {
@@ -111,11 +110,5 @@ public class App {
             }
             context.json(reply);
         });
-    }
-
-    public static void main(String[] args) {
-        final Vertx vertx = Vertx.vertx();
-        final App app = new App(vertx);
-        vertx.deployVerticle(app.server);
     }
 }
