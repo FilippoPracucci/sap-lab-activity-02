@@ -9,13 +9,11 @@ import java.util.stream.StreamSupport;
 
 public class UserServiceImpl implements UserService {
 
-    private static final String DB_USERS_FILE = "users.json";
-
     private final UserRegistry registry;
     private int usersIdCount;
 
-    public UserServiceImpl() {
-        this.registry = new VertxFileUserRegistry(DB_USERS_FILE);
+    public UserServiceImpl(final UserRegistry registry) {
+        this.registry = registry;
         this.usersIdCount = StreamSupport.stream(this.registry.findAllUsers().spliterator(), false)
                 .map(u -> Integer.valueOf(u.id().split("-")[1]))
                 .max(Comparator.comparingInt(id -> id))

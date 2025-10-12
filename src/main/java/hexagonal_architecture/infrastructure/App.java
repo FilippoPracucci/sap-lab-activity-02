@@ -18,11 +18,11 @@ public class App {
     private static final int PORT = 8080;
     private static final String DB_USERS = "users.json";
 
-    private final UserService userService = new UserServiceImpl();
     private final UserRegistry userRegistry = new VertxFileUserRegistry(DB_USERS);
+    private final UserService userService = new UserServiceImpl(this.userRegistry);
     private final GameRegistry gameRegistry = new GameRegistryImpl();
     private final GameService gameService = new GameServiceImpl(this.gameRegistry, this.userRegistry);
-    private final VertxEventPublisher publisher;
+    private final EventPublisher publisher;
 
     public App(final Vertx vertx) {
         final HttpCommunication server = new HttpCommunication(PORT, this.createRouter(vertx), vertx);
