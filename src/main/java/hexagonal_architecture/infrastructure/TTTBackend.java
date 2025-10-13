@@ -13,19 +13,24 @@ import io.vertx.ext.web.handler.StaticHandler;
 
 import java.util.logging.Level;
 
-public class App {
+public class TTTBackend {
 
-    private static final int PORT = 8080;
-    private static final String DB_USERS = "users.json";
-
-    private final UserRegistry userRegistry = new VertxFileUserRegistry(DB_USERS);
-    private final UserService userService = new UserServiceImpl(this.userRegistry);
-    private final GameRegistry gameRegistry = new GameRegistryImpl();
-    private final GameService gameService = new GameServiceImpl(this.gameRegistry, this.userRegistry);
+    private final UserRegistry userRegistry;
+    private final GameRegistry gameRegistry;
     private final EventPublisher publisher;
+    private final App app;
 
-    public App(final Vertx vertx) {
-        final HttpCommunication server = new HttpCommunication(PORT, this.createRouter(vertx), vertx);
+    public TTTBackend(
+            final App app,
+            final UserRegistry userRegistry,
+            final GameRegistry gameRegistry,
+            final int port,
+            final Vertx vertx)
+    {
+        this.app = app;
+        this.userRegistry = userRegistry;
+        this.gameRegistry = gameRegistry;
+        HttpCommunication server = new HttpCommunication(port, this.createRouter(vertx), vertx);
         this.publisher = new VertxEventPublisher(vertx, server.getHttpServer(), this.gameRegistry);
         vertx.deployVerticle(server);
     }
@@ -44,16 +49,16 @@ public class App {
         context.request().handler(buffer -> {
             final JsonObject userInfo = buffer.toJsonObject();
             final String userName = userInfo.getString("userName");
-            final User newUser = this.userService.registerUser(userName);
+            final String userId = this.app.registerUser(userName);
             context.json(new JsonObject()
-                    .put("userId", newUser.id())
+                    .put("userId", userId)
                     .put("userName", userName));
         });
     }
 
     private void createNewGame(RoutingContext context) {
-        final Game newGame = this.gameService.createNewGame();
-        context.json(new JsonObject().put("gameId", newGame.getId()));
+        final String gameId = this.app.createNewGame();
+        context.json(new JsonObject().put("gameId", gameId));
     }
 
     private void joinGame(RoutingContext context) {
@@ -64,10 +69,9 @@ public class App {
             final Game game = this.gameRegistry.findGameById(joinInfo.getString("gameId")).orElseThrow();
             final String symbol = joinInfo.getString("symbol");
             final JsonObject reply = new JsonObject();
-            try {
-                this.gameService.joinGame(user.id(), game.getId(), symbol);
+            if (this.app.joinGame(user.id(), game.getId(), symbol)) {
                 reply.put("result", "accepted");
-            } catch (Exception ex) {
+            } else {
                 reply.put("result", "denied");
             }
             context.json(reply);
@@ -77,36 +81,35 @@ public class App {
     private void makeAMove(RoutingContext context) {
         context.request().handler(buffer -> {
             final JsonObject reply = new JsonObject();
-            try {
-                final JsonObject moveInfo = buffer.toJsonObject();
-                final User user = this.userRegistry.findUserById(moveInfo.getString("userId")).orElseThrow();
-                final Game game = this.gameRegistry.findGameById(moveInfo.getString("gameId")).orElseThrow();
-                final String symbol = moveInfo.getString("symbol");
-                final int x = Integer.parseInt(moveInfo.getString("x"));
-                final int y = Integer.parseInt(moveInfo.getString("y"));
-                this.gameService.makeAMove(user.id(), game.getId(), symbol, x, y);
+            final JsonObject moveInfo = buffer.toJsonObject();
+            final User user = this.userRegistry.findUserById(moveInfo.getString("userId")).orElseThrow();
+            final Game game = this.gameRegistry.findGameById(moveInfo.getString("gameId")).orElseThrow();
+            final String symbol = moveInfo.getString("symbol");
+            final int x = Integer.parseInt(moveInfo.getString("x"));
+            final int y = Integer.parseInt(moveInfo.getString("y"));
+            if (this.app.makeAMove(user.id(), game.getId(), symbol, x, y)) {
                 reply.put("result", "accepted");
-
-                final JsonObject event = new JsonObject()
-                        .put("event", "new-move")
-                        .put("x", x)
-                        .put("y", y)
-                        .put("symbol", symbol);
-                this.publisher.publish(game.getId(), event);
-
-                if (game.isGameEnd()) {
-                    final JsonObject eventEnd = new JsonObject();
-                    eventEnd.put("event", "game-ended");
-                    if (game.isTie()) {
-                        eventEnd.put("result", "tie");
-                    } else {
-                        eventEnd.put("winner", game.getWinner().get().toString().toLowerCase());
-
-                    }
-                    this.publisher.publish(game.getId(), eventEnd);
-                }
-            } catch (Exception ex) {
+            } else {
                 reply.put("result", "invalid-move");
+            }
+
+            final JsonObject event = new JsonObject()
+                    .put("event", "new-move")
+                    .put("x", x)
+                    .put("y", y)
+                    .put("symbol", symbol);
+            this.publisher.publish(game.getId(), event);
+
+            if (game.isGameEnd()) {
+                final JsonObject eventEnd = new JsonObject();
+                eventEnd.put("event", "game-ended");
+                if (game.isTie()) {
+                    eventEnd.put("result", "tie");
+                } else {
+                    eventEnd.put("winner", game.getWinner().get().toString().toLowerCase());
+
+                }
+                this.publisher.publish(game.getId(), eventEnd);
             }
             context.json(reply);
         });

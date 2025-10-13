@@ -1,5 +1,6 @@
 package hexagonal_architecture.infrastructure;
 
+import annotations.Adapter;
 import hexagonal_architecture.domain.Game;
 import hexagonal_architecture.application.GameRegistry;
 
@@ -7,6 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
+@Adapter
 public class GameRegistryImpl implements GameRegistry {
 
     private final Map<String, Game> games = new HashMap<>();

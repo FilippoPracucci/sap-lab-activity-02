@@ -1,8 +1,6 @@
-package hexagonal_architecture.infrastructure;
+package hexagonal_architecture.application;
 
 import hexagonal_architecture.domain.User;
-import hexagonal_architecture.application.UserRegistry;
-import hexagonal_architecture.application.UserService;
 
 import java.util.Comparator;
 import java.util.stream.StreamSupport;

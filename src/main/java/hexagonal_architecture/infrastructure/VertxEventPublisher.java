@@ -1,5 +1,6 @@
 package hexagonal_architecture.infrastructure;
 
+import annotations.Adapter;
 import hexagonal_architecture.domain.Game;
 import hexagonal_architecture.domain.GameLogger;
 import hexagonal_architecture.application.EventPublisher;
@@ -12,6 +13,7 @@ import io.vertx.core.json.JsonObject;
 
 import java.util.logging.Level;
 
+@Adapter
 public class VertxEventPublisher implements EventPublisher {
 
     private final EventBus eventBus;

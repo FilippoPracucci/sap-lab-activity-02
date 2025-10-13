@@ -1,13 +1,10 @@
-package hexagonal_architecture.infrastructure;
+package hexagonal_architecture.application;
 
 import hexagonal_architecture.domain.Game;
 import hexagonal_architecture.domain.GameSymbolType;
 import hexagonal_architecture.domain.User;
 import hexagonal_architecture.domain.exceptions.InvalidJoinException;
 import hexagonal_architecture.domain.exceptions.InvalidMoveException;
-import hexagonal_architecture.application.GameRegistry;
-import hexagonal_architecture.application.GameService;
-import hexagonal_architecture.application.UserRegistry;
 
 public class GameServiceImpl implements GameService {
 

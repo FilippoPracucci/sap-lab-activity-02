@@ -1,5 +1,6 @@
 package hexagonal_architecture.infrastructure;
 
+import annotations.Adapter;
 import hexagonal_architecture.domain.GameLogger;
 import hexagonal_architecture.domain.User;
 import hexagonal_architecture.application.UserRegistry;
@@ -15,13 +16,16 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 
+@Adapter
 public class VertxFileUserRegistry implements UserRegistry {
+
+    private static final String DB_USERS = "users.json";
 
     private final File userRegistryFile;
     private final Map<String, User> users;
 
-    public VertxFileUserRegistry(final String filePath) {
-        this.userRegistryFile = new File(filePath);
+    public VertxFileUserRegistry() {
+        this.userRegistryFile = new File(DB_USERS);
         this.users = new HashMap<>();
         this.initUsers();
     }
